@@ -1,0 +1,10 @@
+{
+  "cli_ext_dir": "~/.gemini/extensions",
+  "gui_skills_dir": "~/.gemini/antigravity/skills",
+  "required_md_headers": [
+    "Context / scope of the new skill",
+    "Instructions",
+    "Technical Crap",
+    "Examples"
+  ]
+}

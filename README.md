@@ -1,4 +1,4 @@
-# Agent-Skill Manager: Advanced Stuff (v2.0)
+# Agent-Skill Manager
 
 Making sure skills were linked between my two workstations and accessible by both a CLI and google's Antigravity was getting very tiring so I made an attempt at cleaning up the process a bit. As far as I am aware, the gemini-cli has a skill builder but does not have robust linking and management capabilities.
 
