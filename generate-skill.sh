@@ -17,27 +17,25 @@ REPO_ROOT=$(resolve_path "$(dirname "${BASH_SOURCE[0]}")")
 CONFIG_FILE="$REPO_ROOT/asm-config.json"
 REPO_SKILLS_DIR="$REPO_ROOT/skills"
 
-# Default Paths (will be overridden by config if present)
-CLI_EXT_DIR="$HOME/.gemini/extensions"
-GUI_SKILLS_DIR="$HOME/.gemini/antigravity/skills"
+# Default Paths
+SYSTEM_SKILL_DIRS=()
 
 # Load Configuration
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        # /usr/bin/python3
-        CLI_EXT_DIR_CONFIG=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('cli_ext_dir', sys.argv[2]))" "$CONFIG_FILE" "$CLI_EXT_DIR" 2>/dev/null)
-        GUI_SKILLS_DIR_CONFIG=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('gui_skills_dir', sys.argv[2]))" "$CONFIG_FILE" "$GUI_SKILLS_DIR" 2>/dev/null)
-        
-        CLI_EXT_DIR=$(expand_tilde "$CLI_EXT_DIR_CONFIG")
-        GUI_SKILLS_DIR=$(expand_tilde "$GUI_SKILLS_DIR_CONFIG")
+        local json_dirs=$(python3 -c "import json, sys; print('|'.join(json.load(open(sys.argv[1])).get('system_skill_dirs', [])))" "$CONFIG_FILE" 2>/dev/null)
+        if [ -n "$json_dirs" ]; then
+            IFS='|' read -ra ADDR <<< "$json_dirs"
+            for dir in "${ADDR[@]}"; do
+                SYSTEM_SKILL_DIRS+=("$(expand_tilde "$dir")")
+            done
+        fi
     fi
 
-    # Ensure paths are not empty or root
-    if [[ -z "$CLI_EXT_DIR" || "$CLI_EXT_DIR" == "/" ]]; then
-        CLI_EXT_DIR="$HOME/.gemini/extensions"
-    fi
-    if [[ -z "$GUI_SKILLS_DIR" || "$GUI_SKILLS_DIR" == "/" ]]; then
-        GUI_SKILLS_DIR="$HOME/.gemini/antigravity/skills"
+    # Fallback to defaults if empty
+    if [ ${#SYSTEM_SKILL_DIRS[@]} -eq 0 ]; then
+        SYSTEM_SKILL_DIRS+=("$HOME/.gemini/extensions")
+        SYSTEM_SKILL_DIRS+=("$HOME/.gemini/antigravity/skills")
     fi
 }
 
@@ -150,8 +148,9 @@ EOF2
 # Environment Synchronization
 link_skills() {
     echo "Starting synchronization..."
-    mkdir -p "$CLI_EXT_DIR"
-    mkdir -p "$GUI_SKILLS_DIR"
+    for dir in "${SYSTEM_SKILL_DIRS[@]}"; do
+        mkdir -p "$dir"
+    done
 
     for skill_path in "$REPO_SKILLS_DIR"/*; do
         if [ -d "$skill_path" ]; then
@@ -160,35 +159,21 @@ link_skills() {
             if validate_skill "$skill_path"; then
                 local real_skill_path=$(resolve_path "$skill_path")
                 
-                # Link CLI
-                local cli_target="$CLI_EXT_DIR/$skill_id"
-                if [ -L "$cli_target" ]; then
-                    if [ "$(resolve_path "$cli_target")" == "$real_skill_path" ]; then
-                        echo "[SKIPPED] $skill_id is already linked in CLI."
+                for target_base in "${SYSTEM_SKILL_DIRS[@]}"; do
+                    local target="$target_base/$skill_id"
+                    if [ -L "$target" ]; then
+                        if [ "$(resolve_path "$target")" == "$real_skill_path" ]; then
+                            echo "[SKIPPED] $skill_id is already linked in $target_base"
+                        else
+                            echo "[WARNING] $skill_id link in $target_base points elsewhere. Skipping."
+                        fi
+                    elif [ -e "$target" ]; then
+                        echo "[ERROR] $skill_id in $target_base is a real directory, blocking link."
                     else
-                        echo "[WARNING] $skill_id CLI link points elsewhere. Skipping."
+                        ln -sf "$real_skill_path" "$target"
+                        echo "[LINKED] $skill_id in $target_base"
                     fi
-                elif [ -e "$cli_target" ]; then
-                    echo "[ERROR] $skill_id in CLI is a real directory, blocking link."
-                else
-                    ln -sf "$real_skill_path" "$cli_target"
-                    echo "[LINKED] $skill_id in CLI."
-                fi
-
-                # Link GUI
-                local gui_target="$GUI_SKILLS_DIR/$skill_id"
-                if [ -L "$gui_target" ]; then
-                    if [ "$(resolve_path "$gui_target")" == "$real_skill_path" ]; then
-                        echo "[SKIPPED] $skill_id is already linked in GUI."
-                    else
-                        echo "[WARNING] $skill_id GUI link points elsewhere. Skipping."
-                    fi
-                elif [ -e "$gui_target" ]; then
-                    echo "[ERROR] $skill_id in GUI is a real directory, blocking link."
-                else
-                    ln -sf "$real_skill_path" "$gui_target"
-                    echo "[LINKED] $skill_id in GUI."
-                fi
+                done
             else
                 echo "[SKIPPED] $skill_id due to validation errors."
             fi
@@ -200,13 +185,15 @@ link_skills() {
 # Check 'health' of skill [could be dying a slow death :(]
 check_status() {
     echo "--- System Health Report ---"
-    echo "CLI Directory: $CLI_EXT_DIR"
-    echo "GUI Directory: $GUI_SKILLS_DIR"
+    echo "Tracking Directories:"
+    for dir in "${SYSTEM_SKILL_DIRS[@]}"; do
+        echo "  - $dir"
+    done
     echo ""
 
     echo "Repository Skills Tracking:"
-    printf "%-20s | %-15s | %-10s | %-10s\n" "SKILL ID" "VALIDATION" "CLI LINK" "GUI LINK"
-    echo "---------------------|-----------------|------------|------------"
+    printf "%-20s | %-12s | %-s\n" "SKILL ID" "VALIDATION" "LOCATION STATUS"
+    echo "---------------------|--------------|-----------------------------------"
 
     for skill_path in "$REPO_SKILLS_DIR"/*; do
         if [ -d "$skill_path" ]; then
@@ -215,67 +202,56 @@ check_status() {
             validate_skill "$skill_path" > /dev/null 2>&1 || v_status="[INVALID]"
 
             local real_skill_path=$(resolve_path "$skill_path")
+            local status_summary=""
 
-            local cli_link_status="[MISSING]"
-            local cli_target="$CLI_EXT_DIR/$skill_id"
-            if [ -L "$cli_target" ]; then
-                if [ "$(resolve_path "$cli_target")" == "$real_skill_path" ]; then
-                    cli_link_status="[LINKED]"
+            for target_base in "${SYSTEM_SKILL_DIRS[@]}"; do
+                local target="$target_base/$skill_id"
+                local label=$(basename "$target_base")
+                # Handle special case for .gemini/extensions vs .gemini/skills
+                if [[ "$target_base" == *".gemini/extensions"* ]]; then label="CLI"; fi
+                if [[ "$target_base" == *".gemini/antigravity/skills"* ]]; then label="GUI"; fi
+                if [[ "$target_base" == *".agents/skills"* ]]; then label="AGTS"; fi
+                if [[ "$target_base" == *".gemini/skills"* ]]; then label="SKLS"; fi
+
+                if [ -L "$target" ]; then
+                    if [ "$(resolve_path "$target")" == "$real_skill_path" ]; then
+                        status_summary+="$label:[LINKED] "
+                    else
+                        status_summary+="$label:[MISMATCH] "
+                    fi
+                elif [ -e "$target" ]; then
+                    status_summary+="$label:[BLOCKING] "
                 else
-                    cli_link_status="[MISMATCH]"
+                    status_summary+="$label:[MISSING] "
                 fi
-            elif [ -e "$cli_target" ]; then
-                cli_link_status="[BLOCKING]"
-            fi
+            done
 
-            local gui_link_status="[MISSING]"
-            local gui_target="$GUI_SKILLS_DIR/$skill_id"
-            if [ -L "$gui_target" ]; then
-                if [ "$(resolve_path "$gui_target")" == "$real_skill_path" ]; then
-                    gui_link_status="[LINKED]"
-                else
-                    gui_link_status="[MISMATCH]"
-                fi
-            elif [ -e "$gui_target" ]; then
-                gui_link_status="[BLOCKING]"
-            fi
-
-            printf "%-20s | %-15s | %-10s | %-10s\n" "$skill_id" "$v_status" "$cli_link_status" "$gui_link_status"
+            printf "%-20s | %-12s | %-s\n" "$skill_id" "$v_status" "$status_summary"
         fi
     done
 
     echo ""
     echo "External / System Skills (Not in this repo):"
     
-    echo "  CLI Extensions:"
-    local found_cli=false
-    for item in "$CLI_EXT_DIR"/*; do
-        local sid=$(basename "$item")
-        if [ ! -d "$REPO_SKILLS_DIR/$sid" ]; then
-            found_cli=true
-            if [ -L "$item" ]; then
-                echo "    [LINK] $sid -> $(python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$item")"
-            else
-                echo "    [DIR]  $sid"
+    for target_base in "${SYSTEM_SKILL_DIRS[@]}"; do
+        echo "  In $target_base:"
+        local found=false
+        # Use a subshell to avoid expansion errors if dir is empty
+        for item in "$target_base"/*; do
+            if [ -e "$item" ]; then
+                local sid=$(basename "$item")
+                if [ ! -d "$REPO_SKILLS_DIR/$sid" ]; then
+                    found=true
+                    if [ -L "$item" ]; then
+                        echo "    [LINK] $sid -> $(resolve_path "$item")"
+                    else
+                        echo "    [DIR]  $sid"
+                    fi
+                fi
             fi
-        fi
+        done
+        [[ "$found" == "false" ]] && echo "    (none)"
     done
-    [[ "$found_cli" == "false" ]] && echo "    (none)"
-
-    echo "  GUI/Antigravity Skills:"
-    local found_gui=false
-    for item in "$GUI_SKILLS_DIR"/*; do
-        local sid=$(basename "$item")
-        if [ ! -d "$REPO_SKILLS_DIR/$sid" ]; then
-            found_gui=true
-            if [ -L "$item" ]; then
-                echo "    [LINK] $sid -> $(python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$item")"
-            else
-                echo "    [DIR]  $sid"
-            fi
-        fi
-    done
-    [[ "$found_gui" == "false" ]] && echo "    (none)"
 }
 
 # Main

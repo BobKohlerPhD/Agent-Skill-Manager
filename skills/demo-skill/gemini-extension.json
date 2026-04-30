@@ -1,0 +1,6 @@
+{
+  "name": "demo-skill",
+  "version": "1.0.0",
+  "description": "A skill to demonstrate how the manager works",
+  "main": "SKILL.md"
+}
