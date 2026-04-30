@@ -1,8 +1,6 @@
 # Agent Skill Manager
 
-Making sure skills were linked between my two workstations and accessible by both a CLI and google's Antigravity was getting very tiring so I made an attempt at cleaning up the process a bit. As far as I am aware, the gemini-cli has a skill builder but does not have robust linking and management capabilities.
-
-My plan is to integrate this with the IMDA project (see repo) in some way but I have not thought of how yet..
+Making sure skills were linked between my two workstations and accessible by both a CLI and google's Antigravity was getting very tiring when I started amounting too many custom skills. This is an attempt at cleaning up the process a bit. As far as I am aware, the gemini-cli has a skill builder but does not have robust linking and management capabilities. However, depending on how you initially setup different tools, you may already have a nice linked structure making this not very necessary. 
 
 There are some automated checks to ensure the files are formatted correctly and a config file makes the path crap more intuitive.
 
