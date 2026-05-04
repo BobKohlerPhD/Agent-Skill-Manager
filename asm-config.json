@@ -2,8 +2,7 @@
   "system_skill_dirs": [
     "~/.gemini/extensions",
     "~/.gemini/antigravity/skills",
-    "~/.agents/skills",
-    "~/.gemini/skills"
+    "~/.agents/skills"
   ],
   "required_md_headers": [
     "Context / scope of the new skill",
