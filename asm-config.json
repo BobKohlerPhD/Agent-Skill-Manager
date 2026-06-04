@@ -5,9 +5,9 @@
     "~/.agents/skills"
   ],
   "required_md_headers": [
-    "Context / scope of the new skill",
-    "Instructions",
-    "Technical Crap",
-    "Examples"
+    "Overview & Scope",
+    "Execution Protocol",
+    "Requirements & Dependencies",
+    "Few-Shot Examples"
   ]
 }

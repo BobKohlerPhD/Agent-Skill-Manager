@@ -55,6 +55,34 @@ validate_skill() {
     local skill_id=$(basename "$target_dir")
     local success=true
 
+    # Try to auto-recover gemini-extension.json if missing but SKILL.md is present
+    if [ ! -f "$target_dir/gemini-extension.json" ] && [ -f "$target_dir/SKILL.md" ]; then
+        python3 -c '
+import sys, os, json, re
+target_dir = sys.argv[1]
+skill_md = os.path.join(target_dir, "SKILL.md")
+ext_json = os.path.join(target_dir, "gemini-extension.json")
+try:
+    with open(skill_md, "r") as f:
+        content = f.read()
+    match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+    if match:
+        fm_text = match.group(1)
+        name, desc = None, None
+        for line in fm_text.splitlines():
+            if line.startswith("name:"):
+                name = line.split(":", 1)[1].strip().strip("\"\x27").strip()
+            elif line.startswith("description:"):
+                desc = line.split(":", 1)[1].strip().strip("\"\x27").strip()
+        if name and desc:
+            with open(ext_json, "w") as f:
+                json.dump({"name": name, "version": "1.0.0", "description": desc, "main": "SKILL.md"}, f, indent=2)
+            print(f"[RECOVERED] Generated missing gemini-extension.json for {os.path.basename(target_dir)}")
+except Exception as e:
+    pass
+' "$target_dir"
+    fi
+
     # Make sure the json is actually a json 
     if [ -f "$target_dir/gemini-extension.json" ]; then
         python3 -m json.tool "$target_dir/gemini-extension.json" > /dev/null 2>&1
@@ -74,7 +102,8 @@ validate_skill() {
             if [ -n "$headers" ]; then
                 IFS='|' read -ra ADDR <<< "$headers"
                 for header in "${ADDR[@]}"; do
-                    grep -q "## $header" "$target_dir/SKILL.md"
+                    # Match header robustly allowing leading/trailing spaces
+                    grep -qE "^##[[:space:]]+${header}[[:space:]]*$" "$target_dir/SKILL.md"
                     if [ $? -ne 0 ]; then
                         echo "[WARNING] Missing header '## $header' in $skill_id/SKILL.md"
                     fi
@@ -128,18 +157,18 @@ description: $DESC
 ---
 # Skill: $NAME
 
-## Context / scope of the new skill
-[Describe the domain of application]
+## Overview & Scope
+[Describe the domain of application and conditions under which the skill should trigger]
 
-## Instructions
+## Execution Protocol
 1. [Operational step 1]
 2. [Operational step 2]
 
-## Technical Crap 
-[Documentation of dependencies and system requirements]
+## Requirements & Dependencies
+[Documentation of external files, library dependencies, and environment requirements]
 
-## Examples
-[Provide input/output pairs for validation]
+## Few-Shot Examples
+[Provide clear input/output pairs or scenarios for validation and in-context learning]
 EOF2
 
     echo "[SUCCESS] Template for '$ID' created in $TARGET"

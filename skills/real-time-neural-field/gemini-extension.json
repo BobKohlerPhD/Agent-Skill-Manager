@@ -1,0 +1,6 @@
+{
+  "name": "real-time-neural-field",
+  "version": "1.0.0",
+  "description": "A generalized framework for creating vibrant, \"Always-Alive\" neural connectivity animations for EEG, fMRI, or Connectomics.",
+  "main": "SKILL.md"
+}

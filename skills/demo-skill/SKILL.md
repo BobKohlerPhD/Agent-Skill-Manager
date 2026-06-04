@@ -4,15 +4,15 @@ description: A skill to demonstrate how the manager works
 ---
 # Skill: Demo Skill
 
-## Context / scope of the new skill
+## Overview & Scope
 [Describe the domain of application]
 
-## Instructions
+## Execution Protocol
 1. [Operational step 1]
 2. [Operational step 2]
 
-## Technical Crap 
+## Requirements & Dependencies
 [Documentation of dependencies and system requirements]
 
-## Examples
+## Few-Shot Examples
 [Provide input/output pairs for validation]

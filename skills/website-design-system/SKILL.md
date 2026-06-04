@@ -48,15 +48,15 @@ To maintain a sophisticated "Institutional Editorial" aesthetic and ensure dimen
 *   **Version Control Anchor:** Refer to the baseline commit for any necessary structural restoration.
 *   **Palette Constraints:** The primary accent is restricted to **Oxblood Mahogany (`#7b341e`)** and the secondary background to **Warm Paper (`#faf9f8`)**. Modifications to this palette are not permitted without formal architectural review.
 
-## Context / scope of the new skill
+## Overview & Scope
 Maintaining high-end editorial aesthetics for web projects.
 
-## Instructions
+## Execution Protocol
 Refer to the structural specifications above for layout, header, and typography standards.
 
-## Technical Crap
+## Requirements & Dependencies
 No special dependencies.
 
-## Examples
+## Few-Shot Examples
 See specifications in sections 1-6 above.
 

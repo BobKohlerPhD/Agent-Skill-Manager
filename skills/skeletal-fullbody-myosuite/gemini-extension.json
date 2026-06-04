@@ -1,0 +1,6 @@
+{
+  "name": "sota-kinematic-skeleton",
+  "version": "1.0.0",
+  "description": "Master protocol for high-fidelity MuJoCo/MyoSuite gait restoration and CPG orchestration.",
+  "main": "SKILL.md"
+}
