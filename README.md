@@ -9,17 +9,17 @@ There are some automated checks to ensure the files are formatted correctly and 
 Instead of hardcoding the paths for the CLI and AG, you can now just change them in `asm-config.json` instead of editing things manually. It supports `~` expansion now too, so it should work on whatever machine you're currently using without complaining.
 
 **Things you can change in the .json:**
-*   `cli_ext_dir`: Where you want the CLI skills (or extensions in AG)  to be.
-*   `gui_skills_dir`: Where Antigravity will look for skills.
-*   `required_md_headers`: The headers that *must* be in your `SKILL.md` or the script will not work properly.
+*   `system_skill_dirs`: An array of absolute paths (supports tilde `~` expansion) to directories where your client or agents look for skills.
+*   `required_md_headers`: The state-of-the-field headers that *must* be in your `SKILL.md` or the script will warn you (e.g., `"Trigger Criteria & Bounds"`, `"Execution Protocol"`, `"Requirements & Environment"`, `"Few-Shot Cognitive Examples"`).
 
-## Skill Checks
+## Skill Checks & Recovery
 
-To keep things from breaking, the script checks your skills when you try to link or check the status.
+To keep things from breaking, the script performs automated health checks during linking or status monitoring:
 
-*   **JSON Check**: Makes sure your `gemini-extension.json` is actually a valid JSON file.
-*   **Header Check**: Looks at `SKILL.md` for the headers you defined in the config to make sure they are "complete".
-*   **Broken Skills**: The script will skip skills that are 'broken' during a sync.
+*   **Frontmatter & JSON Auto-Recovery**: If a skill contains a valid `SKILL.md` file but is missing `gemini-extension.json`, the script automatically extracts metadata (`name`, `description`) from the YAML frontmatter to generate a valid `gemini-extension.json` dynamically.
+*   **JSON Check**: Ensures `gemini-extension.json` contains valid JSON syntax.
+*   **Header Check**: Validates `SKILL.md` for matching headers defined in `required_md_headers` using a flexible whitespace-tolerant pattern.
+*   **Sync Safeguards**: Skips linking for any skill that has fatal validation errors.
 
 ## Quick skill generation (skills should be well-thought out and robust though)
 
