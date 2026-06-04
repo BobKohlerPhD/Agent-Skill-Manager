@@ -7,15 +7,17 @@ description: Tailors a candidate's resume to perfectly match a specific job desc
 
 You are an experienced hiring assistant and ATS (Applicant Tracking System) optimization expert.
 
-## Overview & Scope
-
-Use this skill when the user wants to tailor their resume to match a specific job description.
+## Trigger Criteria & Bounds
+*   **Use Cases**: Use this skill when the user wants to tailor their resume to match a specific job description.
+*   **Anti-Patterns (Do NOT Use)**: Do not use if the candidate has no experience matching the job description, or if the user is seeking general non-targeted resume formatting tips.
 
 **Inputs Required:**
 1. The path to the candidate's existing resume file.
 2. The job description (provided either as raw text or a file path).
 
 ## Execution Protocol
+*   **Pre-conditions**: Verify that the input resume file path exists.
+*   **Step-by-Step Instructions**:
 
 1. **Read the Inputs:**
    - Use the `view_file` tool to read the candidate's existing resume.
@@ -57,10 +59,18 @@ Use this skill when the user wants to tailor their resume to match a specific jo
    - Write the fully rewritten, ATS-optimized resume to a new file in the workspace (e.g., `tailored_resume.md`) using the `write_to_file` tool.
    - Inform the user that the tailored resume has been successfully generated and summarize the key strategic changes you made.
 
-## Requirements & Dependencies
-No special tool dependencies required. Uses standard filesystem tools to read/write resumes.
+*   **Error Handling**: If the input resume cannot be found or read, request the correct file path from the user. Under no circumstances invent details not in the candidate's experience.
 
-## Few-Shot Examples
-* **Input Resume**: `resume.md`
-* **Input Job Description**: "Looking for a Python Developer with experience in Django..."
-* **Output**: A polished resume emphasizing Django experience under the Experience section.
+## Requirements & Environment
+*   **System Dependencies**: Standard filesystem access tools.
+*   **Runtime Packages**: None.
+*   **API Keys / Environment Variables**: None.
+
+## Few-Shot Cognitive Examples
+### Example 1: Django Integration
+*   **Input**:
+    - Resume: `resume.md` (lists "built backend web apps using python frameworks")
+    - Job Description: "Looking for Django developer"
+*   **Agent Thought (CoT)**: The candidate has experience with Python web frameworks. I can specifically call out Django if the user confirms Django was used, or generalize it to "Python web frameworks (including Django-compatible design patterns)" to match the ATS keyword while remaining truthful.
+*   **Action**: Rewrote the Achievements section to highlight Django compatibility.
+*   **Output**: A polished resume emphasizing Django experience under the Experience section.

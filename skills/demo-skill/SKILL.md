@@ -4,15 +4,31 @@ description: A skill to demonstrate how the manager works
 ---
 # Skill: Demo Skill
 
-## Overview & Scope
-[Describe the domain of application]
+## Trigger Criteria & Bounds
+*   **Use Cases**: Demonstrating how the manager works.
+*   **Anti-Patterns (Do NOT Use)**: Do not use for real tasks; only for demonstration.
 
 ## Execution Protocol
-1. [Operational step 1]
-2. [Operational step 2]
+*   **Pre-conditions**: No specific workspace states required.
+*   **Step-by-Step Instructions**:
+    1. Run validation step 1.
+    2. Run validation step 2.
+*   **Error Handling**: If a test step fails, output a warning and proceed with logging.
 
-## Requirements & Dependencies
-[Documentation of dependencies and system requirements]
+## Requirements & Environment
+*   **System Dependencies**: None.
+*   **Runtime Packages**: None.
+*   **API Keys / Environment Variables**: None.
 
-## Few-Shot Examples
-[Provide input/output pairs for validation]
+## Few-Shot Cognitive Examples
+### Example 1: Basic Demo
+*   **Input**:
+    ```json
+    { "action": "test" }
+    ```
+*   **Agent Thought (CoT)**: The user wants to run a demo action. I will log a success message.
+*   **Action**: `echo "Demo success"`
+*   **Output**:
+    ```json
+    { "status": "success" }
+    ```

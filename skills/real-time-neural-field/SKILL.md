@@ -21,16 +21,33 @@ To prevent "flickering" or "blackouts" in real-time brain data, you MUST use a s
 ## 4. Clinical State Indicators
 - **The Halo Alert**: Implement a state-aware boundary. When a biomarker threshold is hit, shift the boundary halo to high-intensity Red (`#ff0000`) with `alpha=0.5` and `linewidth=10`.
 
-## Overview & Scope
-General framework for real-time brain data viz (EEG/fMRI).
+## Trigger Criteria & Bounds
+*   **Use Cases**: General framework for real-time brain data viz (EEG/fMRI).
+*   **Anti-Patterns (Do NOT Use)**: Do not use for static image plots or offline reports that do not require real-time processing loops.
 
 ## Execution Protocol
-Use EMA limits and Gaussian weights to ensure "Always-Alive" fluidity.
+*   **Pre-conditions**: Surface mesh and sensor coordinate files must be parsed and loaded.
+*   **Step-by-Step Instructions**:
+    1. Parse incoming brain sensor streams.
+    2. Apply EMA limits and Gaussian weights to ensure "Always-Alive" fluidity.
+*   **Error Handling**: If a frame times out, log a dropped-frame warning and reuse the previous frame EMA state.
 
-## Requirements & Dependencies
-Requires Nilearn, Matplotlib, and PIL.
+## Requirements & Environment
+*   **System Dependencies**: Graphic drivers supporting hardware acceleration.
+*   **Runtime Packages**: Nilearn, Matplotlib, PIL.
+*   **API Keys / Environment Variables**: None.
 
-## Few-Shot Examples
-See standard clinical reports and visualization outputs for baseline reference.
+## Few-Shot Cognitive Examples
+### Example 1: Streamline Flow Initialization
+*   **Input**:
+    ```json
+    { "frame_rate": 30, "sensors": 64 }
+    ```
+*   **Agent Thought (CoT)**: I need to set up a real-time brain connectivity field with stabilized dynamic range using Nilearn and Matplotlib.
+*   **Action**: Run Python script initializing dynamic limits.
+*   **Output**:
+    ```json
+    { "status": "active", "v_stabilized": 0.15 }
+    ```
 
 

@@ -48,15 +48,32 @@ To maintain a sophisticated "Institutional Editorial" aesthetic and ensure dimen
 *   **Version Control Anchor:** Refer to the baseline commit for any necessary structural restoration.
 *   **Palette Constraints:** The primary accent is restricted to **Oxblood Mahogany (`#7b341e`)** and the secondary background to **Warm Paper (`#faf9f8`)**. Modifications to this palette are not permitted without formal architectural review.
 
-## Overview & Scope
-Maintaining high-end editorial aesthetics for web projects.
+## Trigger Criteria & Bounds
+*   **Use Cases**: Maintaining high-end editorial aesthetics for web projects.
+*   **Anti-Patterns (Do NOT Use)**: Do not use for generic web dashboards or applications utilizing non-editorial frameworks (like Tailwind default components).
 
 ## Execution Protocol
-Refer to the structural specifications above for layout, header, and typography standards.
+*   **Pre-conditions**: Set typography references to Inter/Plus Jakarta/Source Serif.
+*   **Step-by-Step Instructions**:
+    1. Align page structure with container bounds.
+    2. Enforce Oxblood palette styling constraints.
+*   **Error Handling**: If custom alignments drift, restore CSS rules to match the baseline layout stylesheet.
 
-## Requirements & Dependencies
-No special dependencies.
+## Requirements & Environment
+*   **System Dependencies**: None.
+*   **Runtime Packages**: None.
+*   **API Keys / Environment Variables**: None.
 
-## Few-Shot Examples
-See specifications in sections 1-6 above.
+## Few-Shot Cognitive Examples
+### Example 1: Palette Validation
+*   **Input**:
+    ```css
+    body { background-color: #ffffff; }
+    ```
+*   **Agent Thought (CoT)**: Warm Paper (`#faf9f8`) must be used for the secondary background instead of #ffffff to preserve the editorial style.
+*   **Action**: Modify CSS rule.
+*   **Output**:
+    ```css
+    body { background-color: #faf9f8; }
+    ```
 

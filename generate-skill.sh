@@ -157,18 +157,34 @@ description: $DESC
 ---
 # Skill: $NAME
 
-## Overview & Scope
-[Describe the domain of application and conditions under which the skill should trigger]
+## Trigger Criteria & Bounds
+*   **Use Cases**: [Describe when the agent should trigger this skill]
+*   **Anti-Patterns (Do NOT Use)**: [Describe when this skill should NOT be triggered]
 
 ## Execution Protocol
-1. [Operational step 1]
-2. [Operational step 2]
+*   **Pre-conditions**: [Requirements before running, e.g., working directory state]
+*   **Step-by-Step Instructions**:
+    1. [Operational step 1]
+    2. [Operational step 2]
+*   **Error Handling**: [Steps for the agent to take if execution fails or inputs are malformed]
 
-## Requirements & Dependencies
-[Documentation of external files, library dependencies, and environment requirements]
+## Requirements & Environment
+*   **System Dependencies**: [e.g., CLI tools, OS packages]
+*   **Runtime Packages**: [e.g., pip/uv packages, npm packages]
+*   **API Keys / Environment Variables**: [List required keys]
 
-## Few-Shot Examples
-[Provide clear input/output pairs or scenarios for validation and in-context learning]
+## Few-Shot Cognitive Examples
+### Example 1: Standard Success Path
+*   **Input**:
+    ```json
+    [Mock input data or request]
+    ```
+*   **Agent Thought (CoT)**: [Model's step-by-step internal reasoning]
+*   **Action**: [Tools invoked]
+*   **Output / Result**:
+    ```json
+    [Resulting state or content]
+    ```
 EOF2
 
     echo "[SUCCESS] Template for '$ID' created in $TARGET"

@@ -24,16 +24,33 @@ description: Master protocol for high-fidelity MuJoCo/MyoSuite gait restoration 
 - **10:1 Protocol**: Run 3-4 physics steps (dt=0.01) per render frame (30 FPS).
 - **Post-Process**: Sharpen with ImageEnhance.Sharpness(img).enhance(1.5).
 
-## Overview & Scope
-Cinematic gait restoration in MuJoCo.
+## Trigger Criteria & Bounds
+*   **Use Cases**: Cinematic gait restoration in MuJoCo.
+*   **Anti-Patterns (Do NOT Use)**: Do not use for non-kinematic simulations or models that do not use MyoSuite/Matsuoka dynamics.
 
 ## Execution Protocol
-Follow the physics and mapping protocol for bit-perfect movement.
+*   **Pre-conditions**: Verify that the MuJoCo simulation environment has MyoSuite packages installed.
+*   **Step-by-Step Instructions**:
+    1. Follow the physics and mapping protocol for bit-perfect movement.
+    2. Configure camera anchor parameters.
+*   **Error Handling**: If simulation drifts or crashes, reduce step sizes or reset joints to initial coordinates.
 
-## Requirements & Dependencies
-Requires MuJoCo and MyoSuite.
+## Requirements & Environment
+*   **System Dependencies**: MuJoCo.
+*   **Runtime Packages**: MyoSuite.
+*   **API Keys / Environment Variables**: None.
 
-## Few-Shot Examples
-See skeletal visualization scripts in the MuJoCo simulation environment.
+## Few-Shot Cognitive Examples
+### Example 1: Gait Sync
+*   **Input**:
+    ```json
+    { "model": "myoSarcLegWalk-v0", "drive": 1.8 }
+    ```
+*   **Agent Thought (CoT)**: I need to restore cinematic gait on the sarcleg model using MyoSuite dynamics. I will configure the Matsuoka parameters and map joints.
+*   **Action**: Compile MuJoCo physics layout.
+*   **Output**:
+    ```json
+    { "status": "walking", "speed": 0.45 }
+    ```
 
 

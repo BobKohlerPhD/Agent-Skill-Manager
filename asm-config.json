@@ -5,9 +5,9 @@
     "~/.agents/skills"
   ],
   "required_md_headers": [
-    "Overview & Scope",
+    "Trigger Criteria & Bounds",
     "Execution Protocol",
-    "Requirements & Dependencies",
-    "Few-Shot Examples"
+    "Requirements & Environment",
+    "Few-Shot Cognitive Examples"
   ]
 }
