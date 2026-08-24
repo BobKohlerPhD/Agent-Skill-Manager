@@ -1,37 +1,18 @@
 ---
-name: Agent-Skill-Manager
-description: A brief description of what this skill does
+name: agent-skill-manager
+description: Audit an Agent Skills repository when structural quality, metadata drift, portfolio collisions, resource integrity, or routing fixtures need deterministic verification. Do not use to create, install, link, enable, or package skills.
 ---
 
-# Agent-Skill-Manager
+# Agent Skill Manager
 
-Instructions for the agent to follow when this skill is activated.
+Use this repository's read-only CLI as a quality gate for a collection of Agent Skills.
 
-## Trigger Criteria & Bounds
-*   **Use Cases**: Describe when the agent should trigger this skill.
-*   **Anti-Patterns (Do NOT Use)**: Describe when this skill should NOT be triggered.
+## Workflow
 
-## Execution Protocol
-*   **Pre-conditions**: Requirements before running.
-*   **Step-by-Step Instructions**:
-    1. First step
-    2. Second step
-*   **Error Handling**: Steps for the agent to take if execution fails.
+1. Locate the separate skills repository root containing `asm-config.json` and `skills/`.
+2. Run `asm --root /path/to/skills-repository audit`. Add `--strict` when repository policy treats warnings as failures.
+3. Read diagnostics by severity, code, skill, and path.
+4. Inspect `asm --root /path/to/skills-repository routing` when a description or routing fixture changes.
+5. Make only user-requested repairs, then rerun the strict audit and relevant tests.
 
-## Requirements & Environment
-*   **System Dependencies**: e.g., CLI tools, OS packages.
-*   **Runtime Packages**: e.g., pip/uv packages, npm packages.
-*   **API Keys / Environment Variables**: List required keys.
-
-## Few-Shot Cognitive Examples
-### Example 1: Standard Success Path
-*   **Input**:
-    ```json
-    [Mock input data]
-    ```
-*   **Agent Thought (CoT)**: [Model reasoning]
-*   **Action**: [Tools invoked]
-*   **Output**:
-    ```json
-    [Expected output]
-    ```
+Do not use this manager for operations already owned by the host runtime, including skill creation, installation, local discovery, invocation, or plugin packaging. Its purpose is deterministic repository-wide verification.

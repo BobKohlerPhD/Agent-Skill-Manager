@@ -1,52 +1,39 @@
-# Setup
+# Development setup
 
-Getting started with the Agent Skill Manager.
+Agent Skill Manager performs read-only repository checks. It does not require or modify any agent runtime installation directory.
 
-## Initial Configuration
+## Local environment
 
-The tool uses `asm-config.json` to manage storage paths. You can generate a default configuration file with the following command:
-
-```bash
-cat <<EOF > asm-config.json
-{
-  "system_skill_dirs": [
-    "~/.gemini/extensions",
-    "~/.agents/skills"
-  ],
-  "required_md_headers": [
-    "Context / scope of the new skill",
-    "Instructions",
-    "Technical Crap",
-    "Examples"
-  ]
-}
-EOF
-```
-
-*Note: Update the paths in the `"system_skill_dirs"` array to match your local Gemini CLI or Antigravity skill directories.*
-
-## Verifying the environment
-
-Run the status check to verify the environment and identified paths:
+Use Python 3.11 or newer:
 
 ```bash
-./generate-skill.sh status
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --editable .
 ```
 
-This will report the status of all current skills and indicate if any are `[MISSING]` or `[BLOCKING]` in your environment.
-
-## Syncing skills
-
-To link the repository skills to your system directories, run:
+Run the manager tests:
 
 ```bash
-./generate-skill.sh link
+python3 -m unittest discover -s tests -v
 ```
 
-The script will validate each skill and create the necessary symlinks.
+Audit the separate skills repository:
 
-## Troubleshooting
+```bash
+asm --root ../Agent-Skills audit
+```
 
-- **Conflict Errors**: Ensure you do not have overlapping directories in your `system_skill_dirs`. Redundant paths may cause Gemini CLI to report duplicate skill conflicts.
-- **Permission Denied**: Ensure the user running the script has read and write access to the directories defined in `asm-config.json`.
-- **Validation Errors**: If a skill is listed as `[INVALID]`, check that your `SKILL.md` contains the headers defined in `asm-config.json` and that your `gemini-extension.json` is valid.
+Without installing the console entry point, run:
+
+```bash
+./asm --root ../Agent-Skills audit
+```
+
+## Repository separation
+
+Do not add real skills to this repository. The root `skills/` directory is ignored so local copies cannot accidentally be committed here.
+
+Place `asm-config.json` in the skills repository when its layout or policy differs from the defaults. Copy `asm-config.example.json` from this repository as a starting point.
+
+The manager will not create missing manifests or rewrite a skill during validation. Diagnostics identify the exact package, path, and rule so repairs remain intentional and reviewable.

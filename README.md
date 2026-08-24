@@ -1,68 +1,172 @@
 # Agent Skill Manager
 
-Making sure skills were linked between my two workstations and accessible by both a CLI and google's Antigravity was getting very tiring when I started amounting too many custom skills. This is an attempt at cleaning up the process a bit. As far as I am aware, the gemini-cli has a skill builder but does not have robust linking and management capabilities. However, depending on how you initially setup different tools, you may already have a nice linked structure making this not very necessary. 
+This repo used to be a symlink manager. Keeping skills linked between different agents and workstations was getting annoying, so the original shell script tried to make the path crap less painful.
 
-There are some automated checks to ensure the files are formatted correctly and a config file makes the path crap more intuitive.
+That is not really the problem anymore. Current agent runtimes already do a decent job of finding, installing, and invoking skills. Codex has a built-in skill creator and installer, supports repository and user skill locations, and uses plugins for distribution. The [official OpenAI skill documentation](https://learn.chatgpt.com/docs/build-skills) covers that side of things.
 
-## Using Config File (`asm-config.json`)
+The problem I still have is figuring out whether a growing folder of skills is actually in good shape before I commit or publish it.
 
-Instead of hardcoding the paths for the CLI and AG, you can now just change them in `asm-config.json` instead of editing things manually. It supports `~` expansion now too, so it should work on whatever machine you're currently using without complaining.
+So Agent Skill Manager is now a read-only audit tool. It looks through the whole skill repository, points out suspicious or broken bits, and leaves the actual files alone.
 
-**Things you can change in the .json:**
-*   `system_skill_dirs`: An array of absolute paths (supports tilde `~` expansion) to directories where your client or agents look for skills.
-*   `required_md_headers`: The state-of-the-field headers that *must* be in your `SKILL.md` or the script will warn you (e.g., `"Trigger Criteria & Bounds"`, `"Execution Protocol"`, `"Requirements & Environment"`, `"Few-Shot Cognitive Examples"`).
+The skills themselves do not live in this repository anymore. I keep them in a separate skills repo so there is only one version of each skill to maintain. The root `skills/` directory is ignored here on purpose.
 
-## Skill Checks & Recovery
+## What it is useful for
 
-To keep things from breaking, the script performs automated health checks during linking or status monitoring:
+LLMs are already quite capable of drafting or revising one skill. I do not need another wrapper pretending to do that better.
 
-*   **Frontmatter & JSON Auto-Recovery**: If a skill contains a valid `SKILL.md` file but is missing `gemini-extension.json`, the script automatically extracts metadata (`name`, `description`) from the YAML frontmatter to generate a valid `gemini-extension.json` dynamically.
-*   **JSON Check**: Ensures `gemini-extension.json` contains valid JSON syntax.
-*   **Header Check**: Validates `SKILL.md` for matching headers defined in `required_md_headers` using a flexible whitespace-tolerant pattern.
-*   **Sync Safeguards**: Skips linking for any skill that has fatal validation errors.
+What is still useful is a boring, repeatable check that does not depend on which model happens to review the repo that day. The manager currently checks for things like:
 
-## Quick skill generation (skills should be well-thought out and robust though)
+- Invalid or incomplete `SKILL.md` frontmatter
+- Duplicate skill names
+- Folder and skill-name mismatches, when I choose to enforce them
+- Vague descriptions that may trigger at the wrong time
+- Overlapping skill descriptions
+- Old scaffold text, private-reasoning examples, and unsupported guarantees
+- Host-specific tool names that make a skill less portable
+- Broken or package-escaping resource links
+- Scripts that are present but not executable
+- Drift between `SKILL.md` and older manifests, when that check is enabled
+- Problems in optional `agents/openai.yaml` metadata
+- Obvious routing regressions using optional positive and negative prompts
 
-If you just run the `create` command with no arguments, then it will ask you for the Name and Description. It's a lot faster than trying to remember the syntax every time.
+This is not a model evaluator, and the routing check does not reproduce an LLM's semantic router. It is just a cheap offline smoke test that can catch obvious description drift.
+
+## What it deliberately does not do
+
+The manager does not:
+
+- Create skills
+- Install skills
+- Link skills into agent directories
+- Enable or disable skills
+- Rewrite an existing skill to make a warning go away
+- Package skills as plugins
+
+Those jobs either belong to the agent runtime or should remain an intentional editing decision.
+
+## Quick start
+
+Python 3.11 or newer is required.
+
+Point the installed command at the separate skills repository:
 
 ```bash
-./generate-skill.sh create
+asm --root ../Agent-Skills audit
 ```
 
-Or you can just have at the whole dang thing:
-```bash
-./generate-skill.sh create "My Skill" "A quick description"
-```
-
-## Is your skill getting sick on you?
-
-The `status` command gives a full report on all skills in the repo and if it's working in both the CLI and AG. This should also track **external** skills / extensions that are 'installed' or implemented, so you can see exactly whats loaded and working in your current environment. 
+To install the `asm` command from this repository:
 
 ```bash
-./generate-skill.sh status
+python3 -m pip install --editable .
+asm --root ../Agent-Skills audit
 ```
 
-**What the status labels mean:**
-*   **[OK]**: Validation passed.
-*   **[INVALID]**: Something is wrong with the skill files (check the JSON or headers).
-*   **[LINKED]**: The symlink is alive and pointing exactly where it should.
-*   **[MISSING]**: The skill exists here but isn't linked in that environment yet.
-*   **[MISMATCH]**: A link exists but it's pointing to some other folder.
-*   **[BLOCKING]**: There's a real folder in your system extension directory that is blocking the link. You should probably delete it and link again.
-*   **[DIR] / [LINK]**: Found in the "External" section—these are skills/extensions managed outside of this script.
+Without installing it:
 
-## Syncing skills
 ```bash
-./generate-skill.sh link
+./asm --root ../Agent-Skills audit
 ```
 
-It'll only link the skills that pass the checks. It's smart enough to not overwrite real directories or mess up existing valid links.
+The audit is read-only. Errors return a failing exit code. Warnings are reported without failing unless `--strict` is used.
 
-## How everything is organized
+## Commands
 
-Fairly simply organization structure:
-*   **`generate-skill.sh`**: The script that does all the heavy lifting.
-*   **`asm-config.json`**: Where you store your paths and settings.
-*   **`skills/`**: This is where all your skill folders live. Each one has:
-    *   `gemini-extension.json`: The technical info the CLI needs.
-    *   `SKILL.md`: The actual instructions and examples for the agent.
+### Check everything
+
+```bash
+asm --root ../Agent-Skills check
+asm --root ../Agent-Skills audit
+asm --root ../Agent-Skills audit --strict
+```
+
+`check` and `audit` currently run the same checks. I kept `audit` because it reads more naturally in CI.
+
+### Get the short version
+
+```bash
+asm --root ../Agent-Skills status
+```
+
+### See what is in the repo
+
+```bash
+asm --root ../Agent-Skills inventory
+```
+
+This lists each skill and whether it has scripts, references, assets, routing fixtures, OpenAI metadata, or an older manifest.
+
+### Run routing smoke tests
+
+```bash
+asm --root ../Agent-Skills routing
+```
+
+Routing tests are optional. If a skill has `tests/routing.yaml`, the manager checks its positive and negative examples against the rest of the repository.
+
+### Get JSON for another tool
+
+```bash
+asm --root ../Agent-Skills audit --format json
+```
+
+## Configuration
+
+Repository settings live in `asm-config.json` inside the skills repository being audited. If that file is missing, the manager looks for a `skills/` directory and uses its default checks.
+
+This manager repo includes [`asm-config.example.json`](asm-config.example.json) as a starting point:
+
+```json
+{
+  "schema_version": 2,
+  "skills_dir": "skills",
+  "quality": {
+    "require_folder_name_match": false,
+    "require_routing_tests": false,
+    "description_max_chars": 600,
+    "routing_min_margin": 0.02,
+    "check_legacy_metadata": false
+  }
+}
+```
+
+The stricter checks are optional on purpose. I do not want the manager silently changing older skills or making the tool unusable until I review those skills against their actual source projects.
+
+When the repository is ready, I can turn on folder-name enforcement, require routing fixtures, check legacy manifests for drift, or run the whole audit with `--strict`.
+
+## Optional routing fixtures
+
+A routing fixture looks like this:
+
+```yaml
+explicit_only: false
+positive:
+  - "Tailor my resume to this job description without inventing qualifications."
+  - "Create an ATS-readable revision of my existing resume for this target role."
+negative:
+  - "Help me prepare for a behavioral interview."
+  - "Give me salary negotiation advice."
+```
+
+Positive prompts should sound like realistic requests for that skill. Negative prompts should be close enough to be informative instead of random unrelated text.
+
+## Expected layout in the separate skills repo
+
+```text
+skills/example-skill/
+├── SKILL.md
+├── agents/
+│   └── openai.yaml       optional
+├── references/           optional
+├── scripts/              optional
+├── assets/               optional
+└── tests/
+    └── routing.yaml      optional manager fixture
+```
+
+`SKILL.md` stays the canonical skill definition. The manager does not add another required manifest.
+
+## CI
+
+The included GitHub Actions workflow installs the manager, runs its unit tests, and verifies the installed command. It does not audit private or separately maintained skills.
+
+The skills repository can run its own `asm --root . audit` or `asm --root . audit --strict` workflow when I want repository-specific quality checks there.

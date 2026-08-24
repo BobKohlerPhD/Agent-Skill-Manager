@@ -1,0 +1,11 @@
+{
+  "schema_version": 2,
+  "skills_dir": "skills",
+  "quality": {
+    "require_folder_name_match": false,
+    "require_routing_tests": false,
+    "description_max_chars": 600,
+    "routing_min_margin": 0.02,
+    "check_legacy_metadata": false
+  }
+}
